@@ -10,7 +10,7 @@ default_args = {
 }
 
 with DAG(
-    dag_id="soccer_raw_ingestion",
+    dag_id="soccer_etl_processing",
     default_args=default_args,
     description="Load raw soccer CSV data into Postgres",
     start_date=datetime(2024, 1, 1),
@@ -19,9 +19,9 @@ with DAG(
 ) as dag:
     
     health_check = BashOperator(
-        task_id="health_check",
-        bash_command="bash /opt/airflow/scripts/health_checks.sh"
-    )
+    task_id="health_check",
+    bash_command="bash -c '/opt/airflow/scripts/health_checks.sh'"
+)
 
 
     def print_status():
