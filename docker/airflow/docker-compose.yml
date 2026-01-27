@@ -10,6 +10,8 @@ services:
       POSTGRES_DB: airflow
     ports:
       - "5434:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
 
   airflow-webserver:
     image: apache/airflow:2.8.1
@@ -19,9 +21,20 @@ services:
       AIRFLOW__CORE__EXECUTOR: LocalExecutor
       AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
       AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
+      PYTHONPATH: /opt/airflow
+
     volumes:
+      # DAGs
       - ../../airflow/dags:/opt/airflow/dags
-      - ../../scripts:/opt/airflow/scripts
+
+      # Airflow scripts (health checks, loaders)
+      - ../../airflow/scripts:/opt/airflow/scripts
+
+      # Datasets (raw + processed CSVs)
+      - ../../datasets:/opt/airflow/datasets
+
+      # SQL files (schema + tables)
+      - ../../sql:/opt/airflow/sql
     ports:
       - "8080:8080"
     command: webserver
@@ -33,7 +46,19 @@ services:
     environment:
       AIRFLOW__CORE__EXECUTOR: LocalExecutor
       AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
+      PYTHONPATH: /opt/airflow
     volumes:
+      # DAGs
       - ../../airflow/dags:/opt/airflow/dags
-      - ../../scripts:/opt/airflow/scripts
+
+      # Airflow scripts
+      - ../../airflow/scripts:/opt/airflow/scripts
+
+      # Datasets
+      - ../../datasets:/opt/airflow/datasets
+
+      # SQL files
+      - ../../sql:/opt/airflow/sql
     command: scheduler
+volumes:
+  postgres_data:
