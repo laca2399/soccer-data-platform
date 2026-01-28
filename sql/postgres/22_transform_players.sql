@@ -10,7 +10,7 @@ INSERT INTO soccer_staging.dim_player_staging (
 
 SELECT
     p.player_api_id                           AS player_id,
-    TRIM(split_part(p.player_name, ',', 1))  AS player_name,
+    trim(regexp_replace(p.player_name, ',.*$', '')) AS player_name,
     p.birthday::DATE,
     p.height,
     p.weight
