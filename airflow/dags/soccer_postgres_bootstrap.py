@@ -17,9 +17,9 @@ default_args = {
 }
 
 with DAG(
-    dag_id="soccer_analytics_loader",
+    dag_id="soccer_postgres_bootstrap",
     default_args=default_args,
-    description="Create analytics schema and load processed soccer data",
+    description="Bootstrap Postgres analytics schema and tables",
     start_date=datetime(2024, 1, 1),
     schedule_interval=None,   # manual trigger for now
     catchup=False,
