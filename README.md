@@ -65,6 +65,44 @@ Airflow DAG — Data Quality Validation
 
 ## Pipeline Components
 
+# Phase 0 — PostgreSQL Bootstrap (Environment Initialization)
+
+DAG: soccer_postgres_bootstrap
+
+This phase initializes the PostgreSQL analytics environment and is used primarily for development setup and testing purposes.  
+It prepares database schemas and tables before running production ELT pipelines and allows the environment to be reset quickly during development.
+
+Task Flow
+
+```
+health_check
+      ↓
+create_schema
+      ↓
+create_tables
+      ↓
+load_analytics_tables
+```
+
+Responsibilities
+
+- Validates container health and volume mounts before initialization
+- Creates PostgreSQL analytics schemas
+- Creates required analytics tables
+- Loads initial processed datasets for local testing and development validation
+- Enables repeatable environment setup during development cycles
+
+Purpose In Architecture
+
+- This DAG is intentionally not part of the production data pipeline.
+
+It exists to:
+
+- Bootstrap database environments
+- Support local testing and development workflows
+- Validate schema definitions before migrating analytics workloads to Snowflake
+- Separate infrastructure initialization from production ELT logic
+
 # Phase 1 — Raw Ingestion (PostgreSQL RAW)
 
 DAG: soccer_raw_ingestion
@@ -135,7 +173,16 @@ Responsibilities
 - Applies domain transformations such as goal differentials and match flags
 - Produces analytics-ready staging datasets
 
-# Phase 4 — Snowflake RAW Load
+# Phase 4 — Connectivity Testing
+
+DAG: test_snowflake_connection
+
+Responsibilities
+
+- Verifies Snowflake connectivity from Airflow
+- Ensures credential and network configuration correctness
+
+# Phase 5 — Snowflake RAW Load
 
 DAG: soccer_snowflake_raw_loader
 
@@ -163,7 +210,7 @@ Implementation Highlights
 - Multi-row batch inserts using Snowflake connector
 - Logging of chunk progress and row counts
 
-# Phase 5 — Snowflake Analytics Build
+# Phase 6 — Snowflake Analytics Build
 
 DAG: soccer_snowflake_analytics_builder
 
@@ -186,7 +233,7 @@ Responsibilities
 - Applies business logic transformations
 - Produces BI-ready fact and dimension tables
 
-# Phase 6 — Data Quality Validation
+# Phase 7 — Data Quality Validation
 
 DAG: soccer_snowflake_data_quality
 
@@ -206,15 +253,6 @@ Responsibilities
 - Prevents invalid metrics (negative goals)
 - Ensures key dimension attributes are not null
 - Protects downstream analytics reliability
-
-# Phase 7 — Connectivity Testing
-
-DAG: test_snowflake_connection
-
-Responsibilities
-
-- Verifies Snowflake connectivity from Airflow
-- Ensures credential and network configuration correctness
 
 ## 📊 Analytics Star Schema Design
 
