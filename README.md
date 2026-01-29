@@ -27,7 +27,6 @@ This project simulates a real-world ELT pipeline with containerized infrastructu
 
 ## High-Level Architecture
 
-...
 Kaggle Soccer Dataset (SQLite)
 │
 ▼
@@ -61,7 +60,6 @@ Snowflake ANALYTICS (Star Schema)
 │
 ▼
 Airflow DAG — Data Quality Validation
-...
 
 ## Pipeline Components
 
@@ -80,11 +78,11 @@ load_raw_tables_task
 
 Responsibilities
 
-Validates container health and volume mounts
-Creates RAW schema and tables
-Loads Kaggle CSV datasets into PostgreSQL
-Uses chunk-based ingestion for large files (269MB+ match dataset)
-Normalizes column naming and schema formatting
+- Validates container health and volume mounts
+- Creates RAW schema and tables
+- Loads Kaggle CSV datasets into PostgreSQL
+- Uses chunk-based ingestion for large files (269MB+ match dataset)
+- Normalizes column naming and schema formatting
 
 # Phase 2 — File Validation (Pre-ETL Check)
 
@@ -97,8 +95,8 @@ check_files
 
 Responsibilities
 
-Verifies dataset availability before transformation stage
-Prevents downstream pipeline failures due to missing inputs
+- Verifies dataset availability before transformation stage
+- Prevents downstream pipeline failures due to missing inputs
 
 # Phase 3 — Staging Transformations (PostgreSQL STAGING)
 
