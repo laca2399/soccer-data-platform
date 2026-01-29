@@ -6,12 +6,12 @@ This project simulates a real-world ELT pipeline with containerized infrastructu
 
 ## Project Objectives
 
-Build a scalable batch ingestion pipeline for large datasets
-Implement ELT architecture using PostgreSQL and Snowflake
-Orchestrate multi-stage workflows using Apache Airflow
-Design analytics-ready star schema models
-Apply data quality validation and pipeline health monitoring
-Demonstrate production engineering best practices
+- Build a scalable batch ingestion pipeline for large datasets
+- Implement ELT architecture using PostgreSQL and Snowflake
+- Orchestrate multi-stage workflows using Apache Airflow
+- Design analytics-ready star schema models
+- Apply data quality validation and pipeline health monitoring
+- Demonstrate production engineering best practices
 
 ## Technology Stack:
 
@@ -27,6 +27,7 @@ Demonstrate production engineering best practices
 
 ## High-Level Architecture
 
+...
 Kaggle Soccer Dataset (SQLite)
 │
 ▼
@@ -60,6 +61,7 @@ Snowflake ANALYTICS (Star Schema)
 │
 ▼
 Airflow DAG — Data Quality Validation
+...
 
 ## Pipeline Components
 
