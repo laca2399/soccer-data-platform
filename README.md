@@ -94,9 +94,12 @@ Responsibilities
 DAG: soccer_etl_dag
 
 Task Flow
+
+```
 health_check
 ↓
 check_files
+```
 
 Responsibilities
 
@@ -108,6 +111,8 @@ Responsibilities
 DAG: soccer_etl_staging
 
 Task Flow
+
+```
 create_schema
 ↓
 create_tables
@@ -119,6 +124,7 @@ transform_teams
 transform_players
 ↓
 transform_matches
+```
 
 Responsibilities
 
@@ -162,6 +168,8 @@ Implementation Highlights
 DAG: soccer_snowflake_analytics_builder
 
 Task Flow
+
+```
 create_dim_league
 ↓
 create_dim_team
@@ -169,6 +177,7 @@ create_dim_team
 create_dim_player
 ↓
 create_fact_matches
+```
 
 Responsibilities
 
@@ -182,11 +191,14 @@ Responsibilities
 DAG: soccer_snowflake_data_quality
 
 Task Flow
+
+```
 check_fact_not_empty
 ↓
 check_no_negative_goals
 ↓
 check_dim_team_not_null
+```
 
 Responsibilities
 
@@ -204,8 +216,9 @@ Responsibilities
 - Verifies Snowflake connectivity from Airflow
 - Ensures credential and network configuration correctness
 
-## Analytics Star Schema Design
+## 📊 Analytics Star Schema Design
 
+```
                 DIM_LEAGUE
                ┌───────────┐
                │ league_id │
@@ -213,16 +226,17 @@ Responsibilities
                └─────┬─────┘
                      │
 
-DIM_TEAM FACT_MATCHES DIM_PLAYER
-┌─────────┐ ┌─────────────┐ ┌───────────┐
-│ team_id │◄───│ home_team │───►│ player_id │
-│ name │ │ away_team │ │ name │
-└─────────┘ │ league_id │ └───────────┘
-│ goals │
-│ season │
-│ goal_diff │
-│ win_flags │
-└─────────────┘
+DIM_TEAM        FACT_MATCHES        DIM_PLAYER
+┌─────────┐    ┌─────────────┐    ┌───────────┐
+│ team_id │◄───│ home_team   │───►│ player_id │
+│ name    │    │ away_team   │    │ name      │
+└─────────┘    │ league_id   │    └───────────┘
+               │ goals       │
+               │ season      │
+               │ goal_diff   │
+               │ win_flags   │
+               └─────────────┘
+```
 
 ## Engineering Challenges Solved
 
