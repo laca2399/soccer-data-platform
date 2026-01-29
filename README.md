@@ -1,12 +1,19 @@
-# Soccer Data Engineering Platform
+## Soccer Data Engineering Platform
 
-End-to-end data engineering project using soccer data.
+An end-to-end production-style data engineering platform that ingests raw soccer datasets, performs scalable transformations, and builds analytics-ready star schema tables in Snowflake using Apache Airflow orchestration.
 
-This project implements a full production-style data pipeline that ingests soccer data from Kaggle, processes it using PostgreSQL, orchestrates transformations with Apache Airflow, and loads analytics-ready star schema tables into Snowflake.
+This project simulates a real-world ELT pipeline with containerized infrastructure, chunk-based batch processing, warehouse modeling, and automated data quality validation.
 
-The platform demonstrates modern ELT architecture, orchestration, data warehousing, and data quality validation.
+## Project Objectives
 
-Technology Stack:
+Build a scalable batch ingestion pipeline for large datasets
+Implement ELT architecture using PostgreSQL and Snowflake
+Orchestrate multi-stage workflows using Apache Airflow
+Design analytics-ready star schema models
+Apply data quality validation and pipeline health monitoring
+Demonstrate production engineering best practices
+
+## Technology Stack:
 
 | Layer            | Technology                  |
 | ---------------- | --------------------------- |
@@ -18,120 +25,88 @@ Technology Stack:
 | Containerization | Docker Compose              |
 | Version Control  | GitHub                      |
 
-Pipeline Phases
-Phase 1 — Raw Ingestion
+## High-Level Architecture
 
-Kaggle SQLite dataset exported to CSV
+Kaggle Soccer Dataset (SQLite)
+│
+▼
+CSV Export Layer
+│
+▼
+Airflow DAG — Raw Ingestion
+(Chunked Load + Health Checks)
+│
+▼
+PostgreSQL RAW Schema
+│
+▼
+Airflow DAG — Staging ETL
+(Cleaning + Normalization)
+│
+▼
+PostgreSQL STAGING Schema
+│
+▼
+Airflow DAG — Snowflake RAW Loader
+│
+▼
+Snowflake RAW Schema
+│
+▼
+Airflow DAG — Analytics Builder
+│
+▼
+Snowflake ANALYTICS (Star Schema)
+│
+▼
+Airflow DAG — Data Quality Validation
 
-Chunk-based ingestion into PostgreSQL
+## Pipeline Components
 
-Health check BashOperator
-
-Memory-safe processing of large files (269MB+)
+# Phase 1 — Raw Ingestion (PostgreSQL RAW)
 
 DAG: soccer_raw_ingestion
 
----
+Task Flow
+health_check
+↓
+create_raw_schema
+↓
+create_raw_tables
+↓
+load_raw_tables_task
 
-Phase 2 — ETL Staging
+Responsibilities
 
-Clean null values
+Validates container health and volume mounts
+Creates RAW schema and tables
+Loads Kaggle CSV datasets into PostgreSQL
+Uses chunk-based ingestion for large files (269MB+ match dataset)
+Normalizes column naming and schema formatting
 
-Normalize teams and players
+# Phase 2 — File Validation (Pre-ETL Check)
 
-Deduplicate records
+DAG: soccer_etl_dag
 
-Prepare staging tables
+Task Flow
+health_check
+↓
+check_files
+
+Responsibilities
+
+Verifies dataset availability before transformation stage
+Prevents downstream pipeline failures due to missing inputs
+
+# Phase 3 — Staging Transformations (PostgreSQL STAGING)
 
 DAG: soccer_etl_staging
 
----
-
-Phase 3 — Snowflake ELT
-
-Load Postgres data into Snowflake RAW layer
-
-Build analytics star schema
-
-Full-refresh dimension and fact tables
-
-Apply business transformations
-
-DAGs:
-
-raw_loader
-
-analytics_builder
-
----
-
-Phase 4 — Data Quality Validation
-
-Row count checks
-
-Duplicate detection
-
-Data integrity validation
-
-DAG: data_quality
-
----
-
-                ┌──────────────┐
-                │ Kaggle SQLite │
-                └──────┬───────┘
-                       │
-              CSV Export / Preprocessing
-                       │
-                ┌──────▼───────┐
-                │ Local CSVs    │
-                │ (datasets)   │
-                └──────┬───────┘
-                       │
-        ┌──────────────▼──────────────┐
-        │ Airflow DAG 1: Raw Ingestion │
-        │ - health_checks.sh           │
-        │ - Chunked CSV Load           │
-        └──────────────┬──────────────┘
-                       │
-               ┌───────▼────────┐
-               │ PostgreSQL RAW │
-               └───────┬────────┘
-                       │
-        ┌──────────────▼──────────────┐
-        │ Airflow DAG 2: ETL Staging   │
-        │ - Cleaning                   │
-        │ - Deduplication              │
-        │ - Normalization              │
-        └──────────────┬──────────────┘
-                       │
-              ┌────────▼────────┐
-              │ PostgreSQL STG   │
-              └────────┬────────┘
-                       │
-        ┌──────────────▼──────────────┐
-        │ Airflow DAG 3: Snowflake ELT │
-        │ - RAW Loader                 │
-        │ - Analytics Builder          │
-        └──────────────┬──────────────┘
-                       │
-               ┌───────▼────────┐
-               │ Snowflake RAW  │
-               └───────┬────────┘
-                       │
-               ┌───────▼────────┐
-               │ Snowflake DWH  │
-               │ STAR SCHEMA    │
-               └────────────────┘
-
-## DAG 1 — soccer_raw_ingestion
-
-health_check
+Task Flow
+create_schema
 ↓
-load_raw_tables
-
-## DAG 2 — soccer_etl_staging
-
+create_tables
+↓
 transform_leagues
 ↓
 transform_teams
@@ -140,12 +115,47 @@ transform_players
 ↓
 transform_matches
 
-## DAG 3 — soccer_snowflake_raw_loader
+Responsibilities
 
-copy_postgres_to_snowflake_raw
+Creates STAGING schema and tables
+Cleans null values and malformed records
+Normalizes team and league entities
+Deduplicates players using latest attribute snapshots
+Applies domain transformations such as goal differentials and match flags
+Produces analytics-ready staging datasets
 
-## DAG 4 — soccer_snowflake_analytics_builder
+# Phase 4 — Snowflake RAW Load
 
+DAG: soccer_snowflake_raw_loader
+
+Responsibilities
+
+Transfers PostgreSQL RAW tables into Snowflake RAW schema
+Uses Pandas chunk-based loading for memory-safe processing
+Optimized chunk size for Docker + Snowflake stability
+Uppercases column names for Snowflake compatibility
+
+Example Tables Loaded
+
+country
+league
+team
+player
+player_attributes
+team_attributes
+match
+
+Implementation Highlights
+SQLAlchemy engines for both Postgres and Snowflake
+Incremental chunk streaming using read_sql(chunksize=20000)
+Multi-row batch inserts using Snowflake connector
+Logging of chunk progress and row counts
+
+# Phase 5 — Snowflake Analytics Build
+
+DAG: soccer_snowflake_analytics_builder
+
+Task Flow
 create_dim_league
 ↓
 create_dim_team
@@ -154,35 +164,78 @@ create_dim_player
 ↓
 create_fact_matches
 
-## DAG 5 — data_quality
+Responsibilities
 
-row_count_check
-null_check
-duplicate_check
+Builds analytics star schema
+Full-refresh dimensional modeling
+Applies business logic transformations
+Produces BI-ready fact and dimension tables
 
-                 DIM_LEAGUE
-                ┌──────────┐
-                │ league_id│
-                │ name      │
-                └─────┬────┘
-                      │
+# Phase 6 — Data Quality Validation
+
+DAG: soccer_snowflake_data_quality
+
+Task Flow
+check_fact_not_empty
+↓
+check_no_negative_goals
+↓
+check_dim_team_not_null
+
+Responsibilities
+
+Validates fact table population
+Prevents invalid metrics (negative goals)
+Ensures key dimension attributes are not null
+Protects downstream analytics reliability
+
+# Phase 7 — Connectivity Testing
+
+DAG: test_snowflake_connection
+
+Responsibilities
+
+Verifies Snowflake connectivity from Airflow
+Ensures credential and network configuration correctness
+
+## Analytics Star Schema Design
+
+                DIM_LEAGUE
+               ┌───────────┐
+               │ league_id │
+               │ name      │
+               └─────┬─────┘
+                     │
 
 DIM_TEAM FACT_MATCHES DIM_PLAYER
-┌─────────┐ ┌────────────┐ ┌──────────┐
-│ team_id │◄────│ home_team │────►│ player_id│
+┌─────────┐ ┌─────────────┐ ┌───────────┐
+│ team_id │◄───│ home_team │───►│ player_id │
 │ name │ │ away_team │ │ name │
-└─────────┘ │ league_id │ └──────────┘
+└─────────┘ │ league_id │ └───────────┘
 │ goals │
 │ season │
-└────────────┘
+│ goal_diff │
+│ win_flags │
+└─────────────┘
 
-Results
+## Engineering Challenges Solved
 
-Fully automated pipeline
-Star schema ready for BI tools
-Replayable and reproducible pipeline
-Handles large datasets safely
-Cloud warehouse integration
+Chunked ingestion optimized for large CSV files
+Snowflake column formatting compatibility issues resolved
+Player name parsing errors corrected ("Messi, 10")
+Schema mismatches across datasets normalized
+DAG zombie task prevention
+Memory pressure reduced during Snowflake loads
+Large dataset artifacts removed from Git history
+
+## Results
+
+Fully automated end-to-end pipeline
+Production-style ELT architecture
+Dockerized reproducible environment
+Analytics-ready Snowflake star schema
+Integrated data quality validation
+Scalable ingestion for large datasets
 
 ## Pipeline Screenshots
 
