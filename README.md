@@ -27,39 +27,41 @@ This project simulates a real-world ELT pipeline with containerized infrastructu
 
 ## High-Level Architecture
 
+```
 Kaggle Soccer Dataset (SQLite)
-│
-▼
+            │
+            ▼
 CSV Export Layer
-│
-▼
+            │
+            ▼
 Airflow DAG — Raw Ingestion
 (Chunked Load + Health Checks)
-│
-▼
+            │
+            ▼
 PostgreSQL RAW Schema
-│
-▼
+            │
+            ▼
 Airflow DAG — Staging ETL
 (Cleaning + Normalization)
-│
-▼
+            │
+            ▼
 PostgreSQL STAGING Schema
-│
-▼
+            │
+            ▼
 Airflow DAG — Snowflake RAW Loader
-│
-▼
+            │
+            ▼
 Snowflake RAW Schema
-│
-▼
+            │
+            ▼
 Airflow DAG — Analytics Builder
-│
-▼
+            │
+            ▼
 Snowflake ANALYTICS (Star Schema)
-│
-▼
+            │
+            ▼
 Airflow DAG — Data Quality Validation
+```
 
 ## Pipeline Components
 
@@ -68,6 +70,8 @@ Airflow DAG — Data Quality Validation
 DAG: soccer_raw_ingestion
 
 Task Flow
+
+```
 health_check
 ↓
 create_raw_schema
@@ -75,6 +79,7 @@ create_raw_schema
 create_raw_tables
 ↓
 load_raw_tables_task
+```
 
 Responsibilities
 
@@ -117,12 +122,12 @@ transform_matches
 
 Responsibilities
 
-Creates STAGING schema and tables
-Cleans null values and malformed records
-Normalizes team and league entities
-Deduplicates players using latest attribute snapshots
-Applies domain transformations such as goal differentials and match flags
-Produces analytics-ready staging datasets
+- Creates STAGING schema and tables
+- Cleans null values and malformed records
+- Normalizes team and league entities
+- Deduplicates players using latest attribute snapshots
+- Applies domain transformations such as goal differentials and match flags
+- Produces analytics-ready staging datasets
 
 # Phase 4 — Snowflake RAW Load
 
@@ -130,26 +135,27 @@ DAG: soccer_snowflake_raw_loader
 
 Responsibilities
 
-Transfers PostgreSQL RAW tables into Snowflake RAW schema
-Uses Pandas chunk-based loading for memory-safe processing
-Optimized chunk size for Docker + Snowflake stability
-Uppercases column names for Snowflake compatibility
+- Transfers PostgreSQL RAW tables into Snowflake RAW schema
+- Uses Pandas chunk-based loading for memory-safe processing
+- Optimized chunk size for Docker + Snowflake stability
+- Uppercases column names for Snowflake compatibility
 
 Example Tables Loaded
 
-country
-league
-team
-player
-player_attributes
-team_attributes
-match
+- country
+- league
+- team
+- player
+- player_attributes
+- team_attributes
+- match
 
 Implementation Highlights
-SQLAlchemy engines for both Postgres and Snowflake
-Incremental chunk streaming using read_sql(chunksize=20000)
-Multi-row batch inserts using Snowflake connector
-Logging of chunk progress and row counts
+
+- SQLAlchemy engines for both Postgres and Snowflake
+- Incremental chunk streaming using read_sql(chunksize=20000)
+- Multi-row batch inserts using Snowflake connector
+- Logging of chunk progress and row counts
 
 # Phase 5 — Snowflake Analytics Build
 
@@ -166,10 +172,10 @@ create_fact_matches
 
 Responsibilities
 
-Builds analytics star schema
-Full-refresh dimensional modeling
-Applies business logic transformations
-Produces BI-ready fact and dimension tables
+- Builds analytics star schema
+- Full-refresh dimensional modeling
+- Applies business logic transformations
+- Produces BI-ready fact and dimension tables
 
 # Phase 6 — Data Quality Validation
 
@@ -184,10 +190,10 @@ check_dim_team_not_null
 
 Responsibilities
 
-Validates fact table population
-Prevents invalid metrics (negative goals)
-Ensures key dimension attributes are not null
-Protects downstream analytics reliability
+- Validates fact table population
+- Prevents invalid metrics (negative goals)
+- Ensures key dimension attributes are not null
+- Protects downstream analytics reliability
 
 # Phase 7 — Connectivity Testing
 
@@ -195,8 +201,8 @@ DAG: test_snowflake_connection
 
 Responsibilities
 
-Verifies Snowflake connectivity from Airflow
-Ensures credential and network configuration correctness
+- Verifies Snowflake connectivity from Airflow
+- Ensures credential and network configuration correctness
 
 ## Analytics Star Schema Design
 
@@ -220,22 +226,22 @@ DIM_TEAM FACT_MATCHES DIM_PLAYER
 
 ## Engineering Challenges Solved
 
-Chunked ingestion optimized for large CSV files
-Snowflake column formatting compatibility issues resolved
-Player name parsing errors corrected ("Messi, 10")
-Schema mismatches across datasets normalized
-DAG zombie task prevention
-Memory pressure reduced during Snowflake loads
-Large dataset artifacts removed from Git history
+- Chunked ingestion optimized for large CSV files
+- Snowflake column formatting compatibility issues resolved
+- Player name parsing errors corrected ("Messi, 10")
+- Schema mismatches across datasets normalized
+- DAG zombie task prevention
+- Memory pressure reduced during Snowflake loads
+- Large dataset artifacts removed from Git history
 
 ## Results
 
-Fully automated end-to-end pipeline
-Production-style ELT architecture
-Dockerized reproducible environment
-Analytics-ready Snowflake star schema
-Integrated data quality validation
-Scalable ingestion for large datasets
+- Fully automated end-to-end pipeline
+- Production-style ELT architecture
+- Dockerized reproducible environment
+- Analytics-ready Snowflake star schema
+- Integrated data quality validation
+- Scalable ingestion for large datasets
 
 ## Pipeline Screenshots
 
